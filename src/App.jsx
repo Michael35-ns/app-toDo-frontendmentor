@@ -14,7 +14,7 @@ const initialStateTodos = [
   {
     id: 2,
     title: "Jog around the park 3x",
-    completed: false,
+    completed: true,
   },
   {
     id: 3,
@@ -44,23 +44,62 @@ const App = () => {
   const todoCreate = (title) => {
     const newTodo = {
       id: todos.length + 1,
-      title,
+      title: title.trim(),
       completed: false,
     };
     setTodos([...todos, newTodo]);
   };
 
+  const todoRemove = (id) => {
+    setTodos(todos.filter((todo) => todo.id !== id));
+  };
+
+  const todoUpdate = (id) => {
+    setTodos(
+      todos.map((todo) =>
+        todo.id === id ? { ...todo, completed: !todo.completed } : todo
+      )
+    );
+  };
+
+  const todoItemsLeft = todos.filter((todo) => !todo.completed).length;
+
+  const clearCompleted = () => {
+    setTodos(todos.filter((todo) => !todo.completed));
+  };
+
+  const [filter, setFilter] = useState("all");
+
+  const filteredTodos = () => {
+    switch (filter) {
+      case "all":
+        return todos;
+      case "active":
+        return todos.filter((todo) => !todo.completed);
+      case "completed":
+        return todos.filter((todo) => todo.completed);
+      default:
+        return todos;
+    }
+  };
+
+  const changeFilter = filter => setFilter(filter)
+
   return (
     <>
       <Header />
-      <div className="container mx-auto max-w-2xl mt-[-7rem] px-4">
+      <div className="container mx-auto max-w-2xl mt-[-7rem] px-4 ">
         <TodoCreate todoCreate={todoCreate} />
-        <main className="bg-white shadow-2xl rounded-md  border-gray-800">
-          <TodoList todos={todos} />
-          <div className="flex justify-between p-4">
-            <TodoItemsLeft />
-            <TodoFilters />
-            <TodoClear />
+        <main className="bg-white shadow-2xl rounded-md border-gray-800 dark:bg-gray-800 transition-all duration-700">
+          <TodoList
+            todos={filteredTodos()}
+            todoRemove={todoRemove}
+            todoUpdate={todoUpdate}
+          />
+          <div className="flex justify-between p-4 align items-center">
+            <TodoItemsLeft todoItemsLeft={todoItemsLeft} />
+            <TodoFilters changeFilter={changeFilter} filter={filter}/>
+            <TodoClear clearCompleted={clearCompleted} />
           </div>
         </main>
         <div className="flex justify-center py-16">

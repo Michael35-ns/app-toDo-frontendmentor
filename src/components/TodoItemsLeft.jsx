@@ -1,7 +1,7 @@
-const TodoItemsLeft = () => {
+const TodoItemsLeft = ({todoItemsLeft}) => {
   return (
     <>
-      <span className="text-gray-400">5 items left</span>
+      <span className="text-gray-400 text-xs">{todoItemsLeft} Items left</span>
     </>
   );
 };
