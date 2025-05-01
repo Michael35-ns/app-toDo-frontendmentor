@@ -4,42 +4,23 @@ import TodoCreate from "./components/TodoCreate";
 import TodoFilters from "./components/TodoFilters";
 import TodoItemsLeft from "./components/TodoItemsLeft";
 import TodoList from "./components/TodoList";
-import { useState } from "react";
-const initialStateTodos = [
-  {
-    id: 1,
-    title: "Complete online JavaScript course",
-    completed: false,
-  },
-  {
-    id: 2,
-    title: "Jog around the park 3x",
-    completed: true,
-  },
-  {
-    id: 3,
-    title: "10 minutes meditation",
-    completed: false,
-  },
-  {
-    id: 4,
-    title: "Read for 1 hour",
-    completed: false,
-  },
-  {
-    id: 5,
-    title: "Pick up groceries",
-    completed: false,
-  },
-  {
-    id: 6,
-    title: "Complete Todo App on Frontend Mentor",
-    completed: false,
-  },
-];
+import { DragDropContext } from "@hello-pangea/dnd";
+import { useEffect, useState } from "react";
 
+const initialStateTodos = JSON.parse(localStorage.getItem("todos")) || [];
+
+const reorder = (list, startIndex, endIndex) => {
+  const result = [...list];
+  const [removed] = result.splice(startIndex, 1);
+  result.splice(endIndex, 0, removed);
+  return result;
+};
 const App = () => {
   const [todos, setTodos] = useState(initialStateTodos);
+
+  useEffect(() => {
+    localStorage.setItem("todos", JSON.stringify(todos));
+  }, [todos]);
 
   const todoCreate = (title) => {
     const newTodo = {
@@ -83,7 +64,19 @@ const App = () => {
     }
   };
 
-  const changeFilter = filter => setFilter(filter)
+  const changeFilter = (filter) => setFilter(filter);
+
+  const handleDragEnd = (result) => {
+    const { destination, source } = result;
+    if (!destination) return;
+    if (
+      source.index === destination.index &&
+      source.droppableId === destination.droppableId
+    )
+      return;
+
+    setTodos((prevTask) => reorder(prevTask, source.index, destination.index));
+  };
 
   return (
     <>
@@ -91,14 +84,16 @@ const App = () => {
       <div className="container mx-auto max-w-2xl mt-[-7rem] px-4 ">
         <TodoCreate todoCreate={todoCreate} />
         <main className="bg-white shadow-2xl rounded-md border-gray-800 dark:bg-gray-800 transition-all duration-700">
-          <TodoList
-            todos={filteredTodos()}
-            todoRemove={todoRemove}
-            todoUpdate={todoUpdate}
-          />
+          <DragDropContext onDragEnd={handleDragEnd}>
+            <TodoList
+              todos={filteredTodos()}
+              todoRemove={todoRemove}
+              todoUpdate={todoUpdate}
+            />
+          </DragDropContext>
           <div className="flex justify-between p-4 align items-center">
             <TodoItemsLeft todoItemsLeft={todoItemsLeft} />
-            <TodoFilters changeFilter={changeFilter} filter={filter}/>
+            <TodoFilters changeFilter={changeFilter} filter={filter} />
             <TodoClear clearCompleted={clearCompleted} />
           </div>
         </main>
